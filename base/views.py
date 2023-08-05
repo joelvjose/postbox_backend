@@ -1,4 +1,4 @@
-from django.shortcuts import render
+
 from rest_framework.response import Response
 from rest_framework.decorators import api_view
 
@@ -9,6 +9,8 @@ from rest_framework import permissions,status
 
 from .serializer import UserSerializer
 from .models import User
+
+from django.core.exceptions import ObjectDoesNotExist
 
 class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
     @classmethod
@@ -70,4 +72,21 @@ class UsersList(APIView):
             serializer = UserSerializer(user, many = True)
             return Response(serializer.data, status=status.HTTP_200_OK)
         except:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+        
+class BlockUser(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+    
+    def get(self,request,id):
+        try:
+            user=User.objects.get(id=id)
+            if user.is_active:
+                user.is_active=False
+            else:
+                user.is_active=True
+            user.save()
+            # return Response(
+                # status=status.HTTP_200_OK)
+                
+        except ObjectDoesNotExist:
             return Response(status=status.HTTP_404_NOT_FOUND)
